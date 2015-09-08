@@ -364,7 +364,7 @@ void GLApplication::extrudeLine() {
     for(int i=0; i<nbStack; i++) {
         Vector3 tmpStack = _path[i];
         for(int j=0; j<nbSlice; j++) {
-            _extrusion.push_back(tmpStack * Vector3(_section[j], 0.0));
+            _extrusion.push_back(Vector3(_section[j], tmpStack.z()));
         }
     }
 
