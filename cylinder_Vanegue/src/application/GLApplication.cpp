@@ -368,9 +368,8 @@ void GLApplication::extrudeLine() {
     int nbStack = _path.size();
 
     for(int i=0; i<nbStack; i++) {
-        Vector3 tmpStack = _path[i];
         for(int j=0; j<nbSlice; j++) {
-            _extrusion.push_back(rotatePlane(Vector3(_section[j], 0), _path[i] - _path[i+1]));
+            _extrusion.push_back(_path[i] + rotatePlane(Vector3(_section[j], 0), _path[1] - _path[0]));
         }
     }
 
