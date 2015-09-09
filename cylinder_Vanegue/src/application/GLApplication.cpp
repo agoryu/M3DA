@@ -336,8 +336,8 @@ Vector3 GLApplication::pointSpline(double tNormalized) {
     Vector3 result;
 
     //recherche de l'index du point
-    int i = tNormalized * _path.size();
-    double t = (tNormalized * _path.size()) - i;
+    int i = tNormalized * (_path.size()-1);
+    double t = (tNormalized * (_path.size()-1)) - i;
 
     //recuperation des points et tangente
     Vector3 p0 = _path[i];
@@ -416,7 +416,8 @@ void GLApplication::extrudeSpline() {
 
     for(int i=0; i<nbStack; i++) {
         for(int j=0; j<nbSlice; j++) {
-            _extrusion.push_back(pointSpline(i/nbStack) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(i/nbStack)));
+            std::cout << i/(nbStack) << std::endl;
+            _extrusion.push_back(pointSpline(i/(nbStack)) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(i/(nbStack))));
         }
     }
 }
