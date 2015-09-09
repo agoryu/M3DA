@@ -220,9 +220,12 @@ void GLApplication::sectionCircle() {
 
 void GLApplication::pathDefault() {
 
-    _path.clear();
+    /*_path.clear();
     _path.push_back(Vector3(0,0,-2));
-    _path.push_back(Vector3(0,0,2));
+    _path.push_back(Vector3(0,0,2));*/
+    _path.clear();
+    _path.push_back(Vector3(-2,0,-2));
+    _path.push_back(Vector3(2,0,2));
 
 
 }
@@ -316,6 +319,9 @@ Vector3 GLApplication::rotatePlane(const Vector3 &p,const Vector3 &n) {
 
     //q=setRotation((0,0,1), n) //->quaternion
     //matrix4 setFrame(0,i,j,n)
+    Quaternion q;
+    q.setRotation(Vector3(0,0,1), n);
+    result = q * p;
     return result;
 }
 
@@ -364,7 +370,7 @@ void GLApplication::extrudeLine() {
     for(int i=0; i<nbStack; i++) {
         Vector3 tmpStack = _path[i];
         for(int j=0; j<nbSlice; j++) {
-            _extrusion.push_back(Vector3(_section[j], tmpStack.z()));
+            _extrusion.push_back(rotatePlane(Vector3(_section[j], 0), _path[i] - _path[i+1]));
         }
     }
 
