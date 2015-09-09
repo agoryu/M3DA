@@ -223,10 +223,15 @@ void GLApplication::pathDefault() {
     /*_path.clear();
     _path.push_back(Vector3(0,0,-2));
     _path.push_back(Vector3(0,0,2));*/
+
+    /*_path.clear();
+    _path.push_back(Vector3(-2,0,-2));
+    _path.push_back(Vector3(2,0,2));*/
+
     _path.clear();
     _path.push_back(Vector3(-2,0,-2));
-    _path.push_back(Vector3(2,0,2));
-
+    _path.push_back(Vector3(0,0,2));
+    _path.push_back(Vector3(2,0,-1));
 
 }
 
@@ -330,23 +335,46 @@ Vector3 GLApplication::rotatePlane(const Vector3 &p,const Vector3 &n) {
 Vector3 GLApplication::pointSpline(double tNormalized) {
     Vector3 result;
 
+    //recherche de l'index du point
+    int i = tNormalized * _path.size();
+    double t = (tNormalized * _path.size()) - i;
+
+    //recuperation des points et tangente
+    Vector3 p0 = _path[i];
+    Vector3 p1 = _path[i+1];
+    Vector3 t0 = tangentPathLine(i);
+    Vector3 t1 = tangentPathLine(i+1);
+
+    result = pow(t, 3) *  (2.0 * p0 - 2.0 * p1 + t0 + t1)
+            + pow(t, 2) *  (-3.0 * p0 + 3.0 * p1 - 2.0 * t0 - t1)
+            + t * t0 + p0;
+
     return result;
 }
 
 
 Vector3 GLApplication::tangentPathSpline(double tNormalized) {
-    Vector3 result;
+    int i = tNormalized * _path.size();
 
-    return result;
+    if(i == 0) {
+        return _path[1] - _path[0];
+    } else if(i == _path.size() - 1) {
+        return _path[_path.size() - 1] - _path[_path.size() - 2];
+    } else {
+        return _path[i + 1] - _path[i - 1];
+    }
 }
 
 
 
 Vector3 GLApplication::tangentPathLine(unsigned int i) {
-    Vector3 result;
-
-
-    return result;
+    if(i == 0) {
+        return _path[1] - _path[0];
+    } else if(i == _path.size() - 1) {
+        return _path[_path.size() - 1] - _path[_path.size() - 2];
+    } else {
+        return _path[i + 1] - _path[i - 1];
+    }
 }
 
 /** ************************************************************************* **/
@@ -369,7 +397,7 @@ void GLApplication::extrudeLine() {
 
     for(int i=0; i<nbStack; i++) {
         for(int j=0; j<nbSlice; j++) {
-            _extrusion.push_back(_path[i] + rotatePlane(Vector3(_section[j], 0), _path[1] - _path[0]));
+            _extrusion.push_back(_path[i] + rotatePlane(Vector3(_section[j], 0), tangentPathLine(i)));
         }
     }
 
@@ -383,6 +411,14 @@ void GLApplication::extrudeSpline() {
     _normalExtrusion.clear(); // for lighting (last question)
 
 
+    int nbSlice = _section.size();
+    double nbStack = _path.size();
+
+    for(int i=0; i<nbStack; i++) {
+        for(int j=0; j<nbSlice; j++) {
+            _extrusion.push_back(pointSpline(i/nbStack) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(i/nbStack)));
+        }
+    }
 }
 
 
