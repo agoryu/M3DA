@@ -237,7 +237,13 @@ void GLApplication::pathDefault() {
 
 void GLApplication::pathCircle() {
 
+    _path.clear();
 
+    int nbPoint = 20;
+    for(double i = 0; i<=2.0 * M_PI; i += (2.0 * M_PI)/nbPoint) {
+        _path.push_back(Vector3(cos(i), sin(i), 0));
+    }
+    _path.push_back(Vector3(cos(0), sin(0), 0));
 }
 
 /** ************************************************************************ **/
@@ -354,24 +360,25 @@ Vector3 GLApplication::pointSpline(double tNormalized) {
 
 
 Vector3 GLApplication::tangentPathSpline(double tNormalized) {
-    int i = tNormalized * _path.size();
 
-    if(i == 0) {
-        return _path[1] - _path[0];
-    } else if(i == _path.size() - 1) {
-        return _path[_path.size() - 1] - _path[_path.size() - 2];
+    if(tNormalized == 0) {
+        return pointSpline(0.01) - pointSpline(0);
+    } else if(tNormalized == 1) {
+        return pointSpline(1) - pointSpline(0.99);
     } else {
-        return _path[i + 1] - _path[i - 1];
+        return pointSpline(tNormalized+0.01) - pointSpline(tNormalized-0.01);
     }
 }
 
 
 
 Vector3 GLApplication::tangentPathLine(unsigned int i) {
+    int size = _path.size();
+
     if(i == 0) {
         return _path[1] - _path[0];
-    } else if(i == _path.size() - 1) {
-        return _path[_path.size() - 1] - _path[_path.size() - 2];
+    } else if(i == size - 1) {
+        return _path[size - 1] - _path[size - 2];
     } else {
         return _path[i + 1] - _path[i - 1];
     }
@@ -412,12 +419,12 @@ void GLApplication::extrudeSpline() {
 
 
     int nbSlice = _section.size();
-    double nbStack = _path.size();
+    double nbStack = 100;
 
     for(int i=0; i<nbStack; i++) {
+        double tNormalized = i/(nbStack);
         for(int j=0; j<nbSlice; j++) {
-            std::cout << i/(nbStack) << std::endl;
-            _extrusion.push_back(pointSpline(i/(nbStack)) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(i/(nbStack))));
+            _extrusion.push_back(pointSpline(tNormalized) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(tNormalized)));
         }
     }
 }
