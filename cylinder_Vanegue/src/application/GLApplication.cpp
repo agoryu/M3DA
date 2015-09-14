@@ -273,17 +273,16 @@ void GLApplication::drawExtrusion() {
     p3d::shaderVertexAmbient();
 
 
-    drawGrid(_extrusion,nbSlice); // comment this when last question done
+    //drawGrid(_extrusion,nbSlice); // comment this when last question done
 
-    /*
-   *  uncomment once normals computed (last question)
+
+   /*  uncomment once normals computed (last question)*/
   p3d::lightPosition[0]=Vector4(0,0,10,1);
   p3d::lightIntensity[0]=1.0;
   p3d::material(Vector4(0,0,0.3,1),Vector3(0,0.2,0.8),Vector3(0,0.8,0.3),100);
   p3d::diffuseBackColor=Vector3(0.8,0,0);
   p3d::shaderLightPhong();
   fillGrid(_extrusion,_normalExtrusion,nbSlice);
-  */
 
 
 
@@ -328,8 +327,6 @@ void GLApplication::drawPathSpline() {
 Vector3 GLApplication::rotatePlane(const Vector3 &p,const Vector3 &n) {
     Vector3 result;
 
-    //q=setRotation((0,0,1), n) //->quaternion
-    //matrix4 setFrame(0,i,j,n)
     Quaternion q;
     q.setRotation(Vector3(0,0,1), n);
     result = q * p;
@@ -409,12 +406,14 @@ void GLApplication::extrudeLine() {
     _extrusion.clear();
     _normalExtrusion.clear(); // for lighting (last question)
 
+    normalSection();
+
     int nbSlice = _section.size();
     int nbStack = _path.size();
 
     for(int i=0; i<nbStack; i++) {
-        _normalExtrusion.push_back(_normalSection[i+1] - _normalSection[i]);
         for(int j=0; j<nbSlice; j++) {
+            _normalExtrusion.push_back(Vector3(_normalSection[j+1], 0) - Vector3(_normalSection[j], 0));
             _extrusion.push_back(_path[i] + rotatePlane(Vector3(_section[j], 0), tangentPathLine(i)));
         }
     }
@@ -428,6 +427,7 @@ void GLApplication::extrudeSpline() {
     _extrusion.clear();
     _normalExtrusion.clear(); // for lighting (last question)
 
+    normalSection();
 
     int nbSlice = _section.size();
     double nbStack = 100;
@@ -435,6 +435,7 @@ void GLApplication::extrudeSpline() {
     for(int i=0; i<nbStack; i++) {
         double tNormalized = i/(nbStack);
         for(int j=0; j<nbSlice; j++) {
+            _normalExtrusion.push_back(Vector3(_normalSection[j+1], 0) - Vector3(_normalSection[j], 0));
             _extrusion.push_back(pointSpline(tNormalized) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(tNormalized)));
         }
     }
