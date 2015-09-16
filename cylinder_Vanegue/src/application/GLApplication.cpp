@@ -436,7 +436,7 @@ void GLApplication::extrudeSpline() {
         double tNormalized = i/(nbStack);
         for(int j=0; j<nbSlice; j++) {
             _normalExtrusion.push_back(Vector3(_normalSection[j+1], 0) - Vector3(_normalSection[j], 0));
-            _extrusion.push_back(pointSpline(tNormalized) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(tNormalized)));
+            _extrusion.push_back(pointSpline(tNormalized) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(tNormalized)) * scale(tNormalized));
         }
     }
 }
@@ -446,7 +446,13 @@ void GLApplication::extrudeSpline() {
 
 
 double GLApplication::scale(double tNormalized) {
-    return tNormalized;
+
+    //index
+    int i = tNormalized * (_path.size()-1);
+    vector<double> t = {0.0, 0.5, 1.0, 2.0};
+
+    return t[1] + 0.5 * tNormalized*(t[2] - t[0] + tNormalized*(2.0*t[0]
+            - 5.0*t[1] + 4.0*t[2] - t[3] + tNormalized*(3.0*(t[1] - t[2]) + t[3] - t[0])));
 
 }
 
