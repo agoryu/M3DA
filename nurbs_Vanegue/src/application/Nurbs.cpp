@@ -60,19 +60,21 @@ double Nurbs::evalNkp(int k,int p,double u,std::vector<double> &knot) {
    */
 
     if(p==0) {
-        if(u>=knot[k] && u<knot[k+1]) return 1;
-        else return 0;
+        if(u>=knot[k] && u<knot[k+1]) return 1.0;
+        else return 0.0;
     }
 
     double frac1, frac2;
-    if(knot[k+p] - knot[k]) frac1 = 0;
+    if(knot[k+p] - knot[k] == 0.0) frac1 = 0.0;
     else frac1 = (u - knot[k])/(knot[k+p] - knot[k]);
 
-    if(knot[p+k+1] - knot[k+1]) frac2 = 0;
+    if(knot[p+k+1] - knot[k+1] == 0.0) frac2 = 0.0;
     else frac2 = (knot[p+k+1] - u)/(knot[p+k+1] - knot[k+1]);
 
-    result = frac1 * evalNkp(k, p-1, u, knot) + frac2 * evalNkp(k+1, p-1, u, knot);
+    double eval1 = evalNkp(k, p-1, u, knot);
+    double eval2 = evalNkp(k+1, p-1, u, knot);
 
+    result = frac1 * eval1 + frac2 * eval2;
 
     return result;
 }
