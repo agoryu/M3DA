@@ -448,7 +448,6 @@ void GLApplication::extrudeSpline() {
 double GLApplication::scale(double tNormalized) {
 
     //index
-    int i = tNormalized * (_path.size()-1);
     vector<double> t = {0.0, 0.5, 1.0, 2.0};
 
     return t[1] + 0.5 * tNormalized*(t[2] - t[0] + tNormalized*(2.0*t[0]

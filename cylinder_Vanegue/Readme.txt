@@ -1,6 +1,6 @@
 Vanegue Elliot
 
-Doit contenir :
-- ce que vous n'avez pas fait (et pourquoi).
-- difficultés rencontrées.
-- commentaires éventuels sur le TP (points à éclaircir, longueur du sujet, etc). 
+L'ensemble du TP a été réalisé.
+
+J'ai eu quelques difficultées sur la partie 6 pour la transformation de la section 
+avec un scale. Je n'avais pas très bien compris ce qui était demandé.
