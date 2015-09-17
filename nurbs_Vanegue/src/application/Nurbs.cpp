@@ -59,22 +59,27 @@ double Nurbs::evalNkp(int k,int p,double u,std::vector<double> &knot) {
    * - k : indice of the basis function.
    */
 
+    //fin de la recurcion
     if(p==0) {
         if(u>=knot[k] && u<knot[k+1]) return 1.0;
         else return 0.0;
     }
 
     double frac1, frac2;
+
+    //verification des fractions
     if(knot[k+p] - knot[k] == 0.0) frac1 = 0.0;
     else frac1 = (u - knot[k])/(knot[k+p] - knot[k]);
 
     if(knot[p+k+1] - knot[k+1] == 0.0) frac2 = 0.0;
     else frac2 = (knot[p+k+1] - u)/(knot[p+k+1] - knot[k+1]);
 
-    double eval1 = evalNkp(k, p-1, u, knot);
-    double eval2 = evalNkp(k+1, p-1, u, knot);
+    //calcul de la valeur recurcive
+    /*double eval1 = evalNkp(k, p-1, u, knot);
+    double eval2 = evalNkp(k+1, p-1, u, knot);*/
 
-    result = frac1 * eval1 + frac2 * eval2;
+    //calcul du resultat
+    result = frac1 * evalNkp(k, p-1, u, knot) + frac2 * evalNkp(k+1, p-1, u, knot);
 
     return result;
 }
@@ -127,6 +132,11 @@ Vector3 Nurbs::pointCurve(double u) {
  * - nbControl(D_U) : number of control points
  * - evalNkp(D_U,k,p,u) to eval basis function
  */
+
+    int size = nbControl(D_U);
+    for(int i=0; i<size; i++) {
+        result += control(i)*evalNkp(D_U, 2, degree(D_U), u);
+    }
 
     return Vector3(result.x(),result.y(),result.z());
 }

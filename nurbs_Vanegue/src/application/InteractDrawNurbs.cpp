@@ -81,7 +81,7 @@ bool InteractDrawNurbs::computeSurface() {
 bool InteractDrawNurbs::computeCurve() {
     _draw.clear();
     if (!_nurbs->checkNbKnot(D_U)) return false;
-    _draw.resize(_drawNbPts);
+    _draw.resize(_drawNbPts+_nurbs->degree(D_U)+1);
 
     /* TODO :
    * - compute each drawing point of the curve in _draw (_drawNbPts is the number of points to set; _draw is a vector of Vector3)
@@ -90,6 +90,12 @@ bool InteractDrawNurbs::computeCurve() {
    *  - _nurbs->pointCurve(u) should give the point P(u)
    */
 
+    double interval = _nurbs->startInterval(D_U) - _nurbs->endInterval(D_U);
+    std::cout << interval << std::endl;
+    for(int i=0; i<_drawNbPts; i++) {
+        double u = (double)i * interval;
+        _draw[i] = _nurbs->pointCurve(u);
+    }
 
     _computeNurbsRequest=false;
     return true;
@@ -389,9 +395,12 @@ void InteractDrawNurbs::drawBasis()
            *
            */
 
+            double uBegin = _nurbs->knot(direction, k);
+            double uEnd = _nurbs->knot(direction, k+_nurbs->degree(direction)+1);
+
             // end TODO
             for(int i=0; i<nbPoint; i++) {
-                int u = i+(k*nbPoint);
+                double u = (double)i/(double)nbPoint * (uEnd-uBegin) + uBegin;
                 double Nkp = _nurbs->evalNkp(direction, k, _nurbs->degree(direction), u);
                 toDraw.push_back(Vector3(u, Nkp, 0));
             }
