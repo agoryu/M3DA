@@ -90,11 +90,14 @@ bool InteractDrawNurbs::computeCurve() {
    *  - _nurbs->pointCurve(u) should give the point P(u)
    */
 
-    double interval = _nurbs->startInterval(D_U) - _nurbs->endInterval(D_U);
-    std::cout << interval << std::endl;
+    double startU=_nurbs->startInterval(D_U);
+    double endU=_nurbs->endInterval(D_U);
+    double stepU=(endU-startU)/(_drawNbPts-1);
+    double u=startU;
+
     for(int i=0; i<_drawNbPts; i++) {
-        double u = (double)i * interval;
         _draw[i] = _nurbs->pointCurve(u);
+        u+=stepU;
     }
 
     _computeNurbsRequest=false;
