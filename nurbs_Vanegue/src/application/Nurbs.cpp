@@ -135,7 +135,7 @@ Vector3 Nurbs::pointCurve(double u) {
 
     int size = nbControl(D_U);
     for(int i=0; i<size; i++) {
-        result += control(i)*evalNkp(D_U, 2, degree(D_U), u);
+        result += control(i) * evalNkp(D_U, i, degree(D_U), u);
     }
 
     return Vector3(result.x(),result.y(),result.z());
@@ -183,6 +183,23 @@ void Nurbs::knotOpenUniform(EDirection direction) {
    *
    *
    */
+    double size = nbControl(direction)+degree(direction)+1;
+    double multiplicity = degree(direction);
+    std::cout << direction << std::endl;
+
+    for(int i=0; i<size; i++) {
+        if(i<multiplicity)
+        _knot[direction][i] = 0.0;
+    }
+
+    for(int i=multiplicity; i<size-multiplicity; i++) {
+        double denom = size;
+        _knot[direction][i] = ((double)i-multiplicity+1)/denom;
+    }
+
+    for(int i=size-multiplicity; i<size; i++) {
+        _knot[direction][i] = 1.0;
+    }
 
 }
 
