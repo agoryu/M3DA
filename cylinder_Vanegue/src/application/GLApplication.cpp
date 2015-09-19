@@ -240,6 +240,7 @@ void GLApplication::pathCircle() {
     _path.clear();
 
     int nbPoint = 50;
+
     for(double i = -1; i<=2.0 * M_PI; i += (2.0 * M_PI)/nbPoint) {
         _path.push_back(Vector3(cos(i), 0, sin(i)));
     }
@@ -413,7 +414,7 @@ void GLApplication::extrudeLine() {
 
     for(int i=0; i<nbStack; i++) {
         for(int j=0; j<nbSlice; j++) {
-            _normalExtrusion.push_back(Vector3(_normalSection[j+1], 0) - Vector3(_normalSection[j], 0));
+            _normalExtrusion.push_back(Vector3(_normalSection[j], 0));
             _extrusion.push_back(_path[i] + rotatePlane(Vector3(_section[j], 0), tangentPathLine(i)));
         }
     }
@@ -435,7 +436,7 @@ void GLApplication::extrudeSpline() {
     for(int i=0; i<nbStack; i++) {
         double tNormalized = i/(nbStack);
         for(int j=0; j<nbSlice; j++) {
-            _normalExtrusion.push_back(Vector3(_normalSection[j+1], 0) - Vector3(_normalSection[j], 0));
+            _normalExtrusion.push_back(Vector3(_normalSection[j], 0));
             _extrusion.push_back(pointSpline(tNormalized) + rotatePlane(Vector3(_section[j], 0), tangentPathSpline(tNormalized)) * scale(tNormalized));
         }
     }

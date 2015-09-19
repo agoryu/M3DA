@@ -354,7 +354,7 @@ void Quaternion::transform(Vector3 *u) const {
 }
 
 
-void Quaternion::setRotation(const Vector3 &v1,const Vector3 &v2) {
+/*void Quaternion::setRotation(const Vector3 &v1,const Vector3 &v2) {
 
   double angle=v1.angle(v2,v1.cross(v2));
   Vector3 axe=cross(v1,v2);
@@ -366,7 +366,14 @@ void Quaternion::setRotation(const Vector3 &v1,const Vector3 &v2) {
 	  this->set(cos(angle/2),sin(angle/2)*axe);
     this->normalize();
   }
+}*/
+void Quaternion::setRotation(const Vector3 &v1,const Vector3 &v2) {
+  Quaternion q;
+  Vector3 a = v1.cross(v2);
+  this->set(sqrt(v1.length2() * v2.length2()) + v1.dot(v2),a);
+  this->normalize();
 }
+
 
 void Quaternion::setIdentity() {
   this->set(1,0,0,0);
