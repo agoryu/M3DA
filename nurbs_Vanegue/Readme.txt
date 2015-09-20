@@ -1,5 +1,8 @@
 Vanegue Elliot
 
+probleme sur uniforme ouvert
+Particularité uniforme ouverte?
+
 Doit contenir :
 - ce que vous n'avez pas fait (et pourquoi).
 - difficultés rencontrées.

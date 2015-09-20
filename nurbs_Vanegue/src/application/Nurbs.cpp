@@ -138,7 +138,7 @@ Vector3 Nurbs::pointCurve(double u) {
         result += control(i) * evalNkp(D_U, i, degree(D_U), u);
     }
 
-    return Vector3(result.x(),result.y(),result.z());
+    return Vector3(result.x(),result.y(),result.z()) / result.w();
 }
 
 
@@ -151,6 +151,17 @@ Vector3 Nurbs::pointSurface(double u,double v) {
    * - degree(D_U), degree(D_V) to get the degree in each direction.
    * - evalNkp(D_U or D_V,k,p,t) to eval basis function in each direction
    */
+
+    int sizeU = nbControl(D_U);
+    int sizeV = nbControl(D_V);
+
+    for(int l=0; l<sizeV; l++) {
+        Vector4 Pp = Vector4(0,0,0,0);
+        for(int k=0; k<sizeU; k++) {
+            Pp += evalNkp(D_U, k, degree(D_U), u) * control(k,l);
+        }
+        result += evalNkp(D_V, l, degree(D_V), v) * Pp;
+    }
 
     return result.project(); // divide by w
 }
@@ -185,20 +196,19 @@ void Nurbs::knotOpenUniform(EDirection direction) {
    */
     double size = nbControl(direction)+degree(direction)+1;
     double multiplicity = degree(direction);
-    std::cout << direction << std::endl;
+    double step = 1/(size-2*multiplicity+1);
+    double cpt = 1;
 
     for(int i=0; i<size; i++) {
         if(i<multiplicity)
-        _knot[direction][i] = 0.0;
-    }
+            _knot[direction][i] = 0.0;
 
-    for(int i=multiplicity; i<size-multiplicity; i++) {
-        double denom = size;
-        _knot[direction][i] = ((double)i-multiplicity+1)/denom;
-    }
-
-    for(int i=size-multiplicity; i<size; i++) {
-        _knot[direction][i] = 1.0;
+        else if(i>=multiplicity && i<size-multiplicity) {
+            _knot[direction][i] = cpt*step;
+            cpt++;
+        }
+        else
+            _knot[direction][i] = 1.0;
     }
 
 }
@@ -212,6 +222,17 @@ void Nurbs::knotBezier(EDirection direction) {
    *
    */
 
+    double size = nbControl(direction)+degree(direction)+1;
+    degree(direction, nbControl(direction)-1);
+
+    for(double i=0.0; i<=size; i++) {
+        if(i<size/2)
+            _knot[direction][i] = 0.0;
+
+        else
+            _knot[direction][i] = 1.0;
+    }
+
 }
 
 void Nurbs::setCircle() {
@@ -219,6 +240,19 @@ void Nurbs::setCircle() {
    *
    */
     _control.clear();
+
+    _control.push_back(Vector4(0, 0, 0, 1)); //P0
+    _control.push_back(Vector4(-0.5, 0, 0, 1) * cos(M_PI/3.0));//P1
+    _control.push_back(Vector4(-0.25, 0.5*sqrt(3.0)/2.0, 0, 1));//P2
+    _control.push_back(Vector4(0, sqrt(3.0)/2.0, 0, 1) * cos(M_PI/3.0));//P3
+    _control.push_back(Vector4(0.25, 0.5*sqrt(3.0)/2.0, 0, 1));//P4
+    _control.push_back(Vector4(0.5, 0, 0, 1) * cos(M_PI/3.0));//P5
+    _control.push_back(Vector4(0, 0, 0, 1));//P6
+
+    _nbControl[D_U] = 7;
+    _degree[D_U] = 2;
+    _knot[D_U] = {0.0, 0.0, 0.0, 1.0/3.0, 1.0/3.0, 2.0/3.0, 2.0/3.0, 1.0, 1.0, 1.0};
+
 
 }
 
