@@ -118,7 +118,11 @@ void SubdivSurface::computePointEdge() {
 
     int size = _edge.size();
     for(int i=0; i<size; i++) {
-        _pointEdge.push_back(_input->positionMesh(_edge[i]._left, _edge[i]._a));
+        Vector3 v1 = _input->positionMesh(_edge[i]._left, _edge[i]._a);
+        Vector3 v2 = _input->positionMesh(_edge[i]._left, _edge[i]._b);
+        Vector3 f1 = _pointFace[_edge[i]._left];
+        Vector3 f2 = _pointFace[_edge[i]._right];
+        _pointEdge.push_back((v1+v2+f1+f2)/4);
     }
 }
 
@@ -130,6 +134,24 @@ void SubdivSurface::computePointVertex() {
    */
     _pointVertex.clear();
 
+    double nbVertex = _edgeOfVertex.size();
+
+    for(int i=0; i<nbVertex; i++) {
+        Vector3 vi = _input->positionMesh(i);
+        double nbEdge = _edgeOfVertex[i].size();
+
+        _pointVertex.push_back((nbEdge - 2.0) / nbEdge * vi);
+
+        Vector3 sumEdge(0.0, 0.0, 0.0);
+        Vector3 sumFace(0.0, 0.0, 0.0);
+
+        for(int j=0; j<nbEdge; j++) {
+            sumEdge += _pointEdge[_edgeOfVertex[i][j]];
+            sumFace += _pointFace[_edge[j]._right];
+        }
+
+        _pointVertex[i] += 1/(nbEdge*nbEdge) * sumEdge + 1/(nbEdge*nbEdge) * sumFace;
+    }
 }
 
 int SubdivSurface::findNextEdge(int i,int j) {
@@ -146,6 +168,37 @@ void SubdivSurface::buildMesh() {
    *
    */
 
+    int sizeV = _pointVertex.size();
+    for(int i=0; i<sizeV; i++) {
+       m->addPositionMesh(_pointVertex[i]);
+    }
+
+    int sizeF = _pointFace.size();
+    for(int i=0; i<sizeF; i++) {
+       m->addPositionMesh(_pointFace[i]);
+    }
+
+    int sizeE = _pointEdge.size();
+    for(int i=0; i<sizeE; i++) {
+       m->addPositionMesh(_pointEdge[i]);
+    }
+
+    for(int i=0; i<sizeV; i++) {
+
+        double nbIncidentFace = _edgeOfVertex[i].size();
+        for(int j=0; j<nbIncidentFace; j++) {
+            int ip = i;
+            int ie1 = sizeV + sizeF + _edgeOfVertex[i][2*j];
+            int ifa = sizeV + j;
+            int ie2 = sizeV + sizeF + _edgeOfVertex[i][2*j+1];
+            m->addFaceMesh({ip, ie1, ifa, ie2});
+            cout << ip << " " << _edgeOfVertex[i][2*j] << " " << j << " " << _edgeOfVertex[i][2*j+1] << endl;
+        }
+    }
+
+    /*m->addFaceMesh({0, sizeV + sizeF + _edgeOfVertex[0][0], sizeV + 0, sizeV + sizeF + _edgeOfVertex[0][1]});
+    /*m->addFaceMesh({0, sizeV + sizeF + _edgeOfVertex[0][2], sizeV + 1, sizeV + sizeF + _edgeOfVertex[0][3]});
+    m->addFaceMesh({0, sizeV + sizeF + _edgeOfVertex[0][4], sizeV + 2, sizeV + sizeF + _edgeOfVertex[0][5]});*/
 
     /* end TODO */
 

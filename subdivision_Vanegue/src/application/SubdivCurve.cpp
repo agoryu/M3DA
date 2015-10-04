@@ -35,14 +35,13 @@ void SubdivCurve::chaikinIter(const vector<Vector3> &p) {
     int size = p.size();
 
     for(int i=0; i<size-1; i+=1) {
+        _result.push_back(3.0/4.0*p[i]+1.0/4.0*p[i+1]);
+        _result.push_back(1.0/4.0*p[i]+3.0/4.0*p[i+1]);
+    }
 
-        if(isClosed() && i == size-1){
-            _result.push_back(3.0/4.0*p[i]+1.0/4.0*p[0]);
-            _result.push_back(1.0/4.0*p[i]+3.0/4.0*p[0]);
-        }else{
-            _result.push_back(3.0/4.0*p[i]+1.0/4.0*p[i+1]);
-            _result.push_back(1.0/4.0*p[i]+3.0/4.0*p[i+1]);
-        }
+    if(isClosed()){
+        _result.push_back(3.0/4.0*p[size-1]+1.0/4.0*p[0]);
+        _result.push_back(1.0/4.0*p[size-1]+3.0/4.0*p[0]);
     }
 
 }
@@ -54,14 +53,8 @@ void SubdivCurve::dynLevinIter(const vector<Vector3> &p) {
 
     int size = p.size();
     for(int i=0; i<size; i+=1) {
-
-        if(isClosed() && i == size-1){
-            _result.push_back(p[i]);
-            _result.push_back(-1.0/16.0*(p[1]+p[i-1])+9.0/16.0*(p[0]+p[i]));
-        }else{
-            _result.push_back(p[i]);
-            _result.push_back(-1.0/16.0*(p[i+2]+p[i-1])+9.0/16.0*(p[i+1]+p[i]));
-        }
+        _result.push_back(p[i%size]);
+        _result.push_back(-1.0/16.0*(p[(i+2)%size]+p[(i-1)%size])+9.0/16.0*(p[(i+1)%size]+p[i%size]));
 
     }
 
