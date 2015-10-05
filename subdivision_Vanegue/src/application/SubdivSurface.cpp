@@ -188,11 +188,16 @@ void SubdivSurface::buildMesh() {
         double nbIncidentFace = _edgeOfVertex[i].size();
         for(int j=0; j<nbIncidentFace; j++) {
             int ip = i;
-            int ie1 = sizeV + sizeF + _edgeOfVertex[i][2*j];
-            int ifa = sizeV + j;
-            int ie2 = sizeV + sizeF + _edgeOfVertex[i][2*j+1];
+            int ie1 = sizeV + sizeF + _edgeOfVertex[i][j];
+            int ifa = sizeV + _edge[_edgeOfVertex[i][j]]._right;
+            int ie2 = 0;
+            for(int k=0; k<nbIncidentFace; k++) {
+                if(_edge[_edgeOfVertex[i][j]]._right == _edge[_edgeOfVertex[i][k]]._left) {
+                    ie2 = sizeV + sizeF + _edgeOfVertex[i][k];
+                }
+            }
+
             m->addFaceMesh({ip, ie1, ifa, ie2});
-            cout << ip << " " << _edgeOfVertex[i][2*j] << " " << j << " " << _edgeOfVertex[i][2*j+1] << endl;
         }
     }
 
