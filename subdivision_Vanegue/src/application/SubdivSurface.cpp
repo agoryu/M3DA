@@ -118,8 +118,8 @@ void SubdivSurface::computePointEdge() {
 
     int size = _edge.size();
     for(int i=0; i<size; i++) {
-        Vector3 v1 = _input->positionMesh(_edge[i]._left, _edge[i]._a);
-        Vector3 v2 = _input->positionMesh(_edge[i]._left, _edge[i]._b);
+        Vector3 v1 = _input->positionMesh(_edge[i]._a);
+        Vector3 v2 = _input->positionMesh(_edge[i]._b);
         Vector3 f1 = _pointFace[_edge[i]._left];
         Vector3 f2 = _pointFace[_edge[i]._right];
         _pointEdge.push_back((v1+v2+f1+f2)/4);
@@ -147,10 +147,10 @@ void SubdivSurface::computePointVertex() {
 
         for(int j=0; j<nbEdge; j++) {
             sumEdge += _pointEdge[_edgeOfVertex[i][j]];
-            sumFace += _pointFace[_edge[j]._right];
+            sumFace += _pointFace[_edge[_edgeOfVertex[i][j]]._right];
         }
 
-        _pointVertex[i] += 1/(nbEdge*nbEdge) * sumEdge + 1/(nbEdge*nbEdge) * sumFace;
+        _pointVertex[i] += 1.0/(nbEdge*nbEdge) * sumEdge + 1.0/(nbEdge*nbEdge) * sumFace;
     }
 }
 
@@ -189,13 +189,48 @@ void SubdivSurface::buildMesh() {
         for(int j=0; j<nbIncidentFace; j++) {
             int ip = i;
             int ie1 = sizeV + sizeF + _edgeOfVertex[i][j];
-            int ifa = sizeV + _edge[_edgeOfVertex[i][j]]._right;
+            int ifa = 0;
+
+            if(ip == _edge[_edgeOfVertex[i][j]]._a) {
+                ifa = sizeV + _edge[_edgeOfVertex[i][j]]._left;
+            } else {
+                ifa = sizeV + _edge[_edgeOfVertex[i][j]]._right;
+            }
+
             int ie2 = 0;
             for(int k=0; k<nbIncidentFace; k++) {
-                if(_edge[_edgeOfVertex[i][j]]._right == _edge[_edgeOfVertex[i][k]]._left) {
-                    ie2 = sizeV + sizeF + _edgeOfVertex[i][k];
+
+                if(ip == _edge[_edgeOfVertex[i][j]]._a) {
+
+                    if(ip == _edge[_edgeOfVertex[i][k]]._a) {
+                        if(_edge[_edgeOfVertex[i][j]]._left == _edge[_edgeOfVertex[i][k]]._right) {
+                            ie2 = sizeV + sizeF + _edgeOfVertex[i][k];
+                        }
+                    }
+
+                    if(ip == _edge[_edgeOfVertex[i][k]]._b) {
+                        if(_edge[_edgeOfVertex[i][j]]._left == _edge[_edgeOfVertex[i][k]]._left) {
+                            ie2 = sizeV + sizeF + _edgeOfVertex[i][k];
+                        }
+                    }
+
+
+                } else {
+                    if(ip == _edge[_edgeOfVertex[i][k]]._a) {
+                        if(_edge[_edgeOfVertex[i][j]]._right == _edge[_edgeOfVertex[i][k]]._right) {
+                            ie2 = sizeV + sizeF + _edgeOfVertex[i][k];
+                        }
+                    }
+
+                    if(ip == _edge[_edgeOfVertex[i][k]]._b) {
+                        if(_edge[_edgeOfVertex[i][j]]._right == _edge[_edgeOfVertex[i][k]]._left) {
+                            ie2 = sizeV + sizeF + _edgeOfVertex[i][k];
+                        }
+                    }
                 }
+
             }
+            cout << ie2 << endl;
 
             m->addFaceMesh({ip, ie1, ifa, ie2});
         }
