@@ -126,17 +126,17 @@ void MultiCurve::synthesisStep() {
     Vector3 Pn;
     Vector3 Qn;
 
-    for(int i=0; i<nbLoop; i++) {
+    for(int i=0; i<n; i++) {
 
         if(i%2 == 0) {
-            Pn = (3*_currentCurve[i]+_currentCurve[i+1])/4.0;
-            Qn = (3*_currentCurve[i]-_currentCurve[i+1])/4.0;
+            Pn = (3*_currentCurve[i/2]+_currentCurve[(i+1)/2])/4.0;
+            Qn = (3*_currentCurve[i/2]-_currentCurve[(i+1)/2])/4.0;
         } else {
-            Pn = (_currentCurve[i]+3*_currentCurve[i+1])/4.0;
-            Qn = (_currentCurve[i]-3*_currentCurve[i+1])/4.0;
+            Pn = (_currentCurve[i/2]+3*_currentCurve[(i+1)/2])/4.0;
+            Qn = (_currentCurve[i/2]-3*_currentCurve[(i+1)/2])/4.0;
         }
 
-        finer.push_back(Pn*_currentCurve[i] + Qn*_detail[level][i]);
+        finer.push_back(Pn*_currentCurve[i/2] + Qn*_detail[level][i/2]);
     }
 
     /* end TODO
