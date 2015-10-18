@@ -230,15 +230,10 @@ void SubdivSurface::buildMesh() {
                 }
 
             }
-            cout << ie2 << endl;
 
             m->addFaceMesh({ip, ie1, ifa, ie2});
         }
     }
-
-    /*m->addFaceMesh({0, sizeV + sizeF + _edgeOfVertex[0][0], sizeV + 0, sizeV + sizeF + _edgeOfVertex[0][1]});
-    /*m->addFaceMesh({0, sizeV + sizeF + _edgeOfVertex[0][2], sizeV + 1, sizeV + sizeF + _edgeOfVertex[0][3]});
-    m->addFaceMesh({0, sizeV + sizeF + _edgeOfVertex[0][4], sizeV + 2, sizeV + sizeF + _edgeOfVertex[0][5]});*/
 
     /* end TODO */
 

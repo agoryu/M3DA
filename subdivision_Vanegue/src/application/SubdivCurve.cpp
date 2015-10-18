@@ -53,8 +53,8 @@ void SubdivCurve::dynLevinIter(const vector<Vector3> &p) {
 
     int size = p.size();
     for(int i=0; i<size; i+=1) {
-        _result.push_back(p[i%size]);
-        _result.push_back(-1.0/16.0*(p[(i+2)%size]+p[(i-1)%size])+9.0/16.0*(p[(i+1)%size]+p[i%size]));
+        _result.push_back(p[i]);
+        _result.push_back((-1.0/16.0)*(p[(i+2)%size]+p[(i-1)%size])+(9.0/16.0)*(p[(i+1)%size]+p[i]));
 
     }
 

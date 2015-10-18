@@ -1,7 +1,8 @@
-Nom1 Prénom1
-Nom2 Prénom2
+Elliot Vanegue
 
-Doit contenir :
-- ce que vous n'avez pas fait (et pourquoi).
-- difficultés rencontrées.
-- commentaires éventuels sur le TP (points à éclaircir, longueur du sujet, etc). 
+Pas trop de difficulté pour les deux premier exercice. Cependant, la subdivision de courbes par Dyn-Levin réagit bizarement quand j'augmente le nombre d'itération puis que je le diminue.
+
+Le plus difficil dans Catmull-Clark a été de retrouver l'indexage des points pour reconstruire
+le maillage.
+
+
