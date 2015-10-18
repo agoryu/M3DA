@@ -147,7 +147,10 @@ void SubdivSurface::computePointVertex() {
 
         for(int j=0; j<nbEdge; j++) {
             sumEdge += _pointEdge[_edgeOfVertex[i][j]];
-            sumFace += _pointFace[_edge[_edgeOfVertex[i][j]]._right];
+            if(_edge[_edgeOfVertex[i][j]]._a == i)
+                sumFace += _pointFace[_edge[_edgeOfVertex[i][j]]._left];
+            else
+                sumFace += _pointFace[_edge[_edgeOfVertex[i][j]]._right];
         }
 
         _pointVertex[i] += 1.0/(nbEdge*nbEdge) * sumEdge + 1.0/(nbEdge*nbEdge) * sumFace;
