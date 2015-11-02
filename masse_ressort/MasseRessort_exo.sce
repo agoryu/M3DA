@@ -7,7 +7,7 @@ numNoeuds = size(noeuds,2);
 
 
 
-[segments] = findSegments(elements)
+[segments] = findSegments(elements);
 numSegments = size(segments,2);
 
 
@@ -38,7 +38,13 @@ for i=1:numNoeuds
      X_t([2*i-1 2*i]) = [noeuds(1,i) ; noeuds(2,i)];
 end
 
+oldVitesse = 0;
+vitesse = 0;
 
+longInit = zeros(numSegments);
+for i=1:numSegments
+    longInit[i] = X_t([segments([i;1]) 2*i]) - X_t([segments([i;2]) 2*i])
+end
 
 for time=0:dt:T,
 
@@ -46,10 +52,16 @@ for time=0:dt:T,
 
     // mouvement de translation uniforme
     for i=1:numNoeuds
-        X_t([2*i]) = X_t([2*i]) +0.2;
+        //calcule chute libre
+        acceleration = [0;(-g * dt)];
+        if(time-dt == 0)
+            continue;
+        end
+        vitesse = oldVitesse + acceleration;
+        X_t([2*i 2*i]) = X_t([2*i 2*i]) + vitesse;
     end
     
-    
+    oldVitesse = vitesse;
         
     // déplacement du maillage
     noeuds_deplaces = noeuds;
