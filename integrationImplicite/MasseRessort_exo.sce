@@ -7,7 +7,7 @@ numNoeuds = size(noeuds,2);
 
 
 
-[segments] = findSegments(elements);
+[segments] = findSegments(elements)
 numSegments = size(segments,2);
 
 
@@ -38,40 +38,18 @@ for i=1:numNoeuds
      X_t([2*i-1 2*i]) = [noeuds(1,i) ; noeuds(2,i)];
 end
 
-oldVitesse = 0;
-vitesse = 0;
 
-L0 = zeros(numSegments);
-for i=1:numSegments
-    L0[i] = norm(X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]));
-end
 
 for time=0:dt:T,
 
-    //force ressort
-    for j=1:numSegments
-        s1 = segments(j, 1);
-        s2 = segments(j, 2);
-        L[j] = norm(X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]));
-        f = k * (L[j] - L0[j]); 
-        direction = X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]);
-        direction = direction / norm(direction);
-        X_t([2*s1-1 2*s1]) = direction * f;
-        X_t([2*s2-1 2*s2]) = -direction * f;
-    end
     
+
     // mouvement de translation uniforme
     for i=1:numNoeuds
-        //calcule chute libre
-        acceleration = [0;(-g * dt)];
-        if(time-dt == 0)
-            continue;
-        end
-        vitesse = oldVitesse + acceleration;
-        X_t([2*i-1 2*i]) = X_t([2*i-1 2*i]) + vitesse;
+        X_t([2*i]) = X_t([2*i]) +0.2;
     end
     
-    oldVitesse = vitesse;
+    
         
     // déplacement du maillage
     noeuds_deplaces = noeuds;
