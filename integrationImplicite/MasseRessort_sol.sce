@@ -17,7 +17,7 @@ m=1;
 g=9.81;
 
 // parametres temps
-dt = 0.005;
+dt = 0.0005;
 T =  0.3;
 
 // etat courant

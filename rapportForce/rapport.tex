@@ -1,0 +1,172 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[francais]{babel}
+\usepackage{listings}
+% pour definir des couleurs
+\usepackage{xcolor}
+\usepackage{amsmath}
+
+
+% code color
+\definecolor{ligthyellow}{RGB}{250,247,220}
+\definecolor{darkblue}{RGB}{5,10,85}
+\definecolor{ligthblue}{RGB}{1,147,128}
+\definecolor{darkgreen}{RGB}{8,120,51}
+\definecolor{darkred}{RGB}{160,0,0}
+
+\lstset{
+    language=C++,
+    captionpos=b,
+    extendedchars=true,
+    frame=lines,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    keepspaces=true,
+    breaklines=true,
+    showspaces=false,
+    showstringspaces=false,
+    breakatwhitespace=false,
+    stepnumber=1,
+    showtabs=false,
+    tabsize=3,
+    basicstyle=\small\ttfamily,
+    backgroundcolor=\color{ligthyellow},
+    keywordstyle=\color{ligthblue},
+    morekeywords={include, printf, uchar},
+    identifierstyle=\color{darkblue},
+    commentstyle=\color{darkgreen},
+    stringstyle=\color{darkred},
+}
+
+
+\title{Rapport TP objet déformable}
+\author{Elliot Vanegue}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+Lors de ces TP, nous avons travaillé sur l'application de différentes forces 
+sur un objet représenté sous forme d'un maillage. L'application des forces 
+se fait alors sur chaque point du maillage de la forme.
+
+\section{Calcule de la masse}
+Dans un premier temps, nous allons appliquer la gravité sur chacun des points.
+Pour cela, j'ai créé un vecteur accélération de la forme [0;-g], g étant la constante
+de gravité. J'ai mis cette constante en négatif pour la force aille vers le bas
+du graphique pour simuler la graviter terrestre. Ensuite, j'ai calculé la vitesse comme ce-ci :
+\begin{equation}
+vitesse(t) = vitesse(t-1) + acceleration
+\end{equation}
+Et enfin, j'ai calculé la position grâce au calcul suivant : 
+\begin{equation}
+position(t) = position(t-1) + vitesse(t)
+\end{equation}
+
+Voici le code que j'ai réalisé pour ce calcul.
+\begin{lstlisting}[caption=Code du Calcul de la gravité]
+for i=1:numNoeuds
+  //calcule chute libre
+  acceleration = [0;(-g * dt)];
+  if(time-dt == 0)
+    continue;
+  end
+  vitesse = oldVitesse + acceleration;
+  X_t([2*i-1 2*i]) = X_t([2*i-1 2*i]) + vitesse;
+end
+    
+oldVitesse = vitesse;
+\end{lstlisting}
+
+\section{Calcul du ressort}
+Pour cette partie, je n'ai pas réussi à calculer la force du ressort, j'ai simplement réussi
+à calculer la longueur à l'instant t et j'ai calculé la force F comme étant :
+\begin{equation}
+F = k*(L(s)-L0(s))
+\end{equation}
+J'ai compris qu'il fallait multiplier mon calcul par la normal du point afin que cette force
+s'applique dans la direction de cette normal. Le calcul de la normal se fait comme ce-ci:
+\begin{equation}
+n = (p1 - p2) * (\frac{1}{L(s)})
+\end{equation}
+On peut remarquer que lorsque nous augmentons trop la valeur dt les points parte n'importe où
+et l'objet ne ressemble plus du tout à un rectangle. En revanche, lorsque nous diminuons dt,
+les mouvements des points du maillage sont moins important.
+
+\section{Intégration implicite}
+L'intégration implicite permet d'obtenir une simulation plus stable en limitant l'erreur d'arrondi
+des résultats. L'application de l'intégration implicite va transformer nos calculs précédents de 
+la manière suivante :
+\begin{align}
+  acceleration(t) &= dv / dt\\
+  position(t) &= position(t-1) + (vitesse(t-1) + dv) * dt\\
+  dv &= vitesse(t) - vitesse(t-1) 
+\end{align}
+Dans un premier temps, j'ai mis dans une fonction l'ensemble des calculs réalisés
+dans les parties précédentes en mettant comme agrument la position du point calculer à l'instant t.
+Cette position correspond à :
+\begin{equation}
+  position(t-1) + (vitesse(t-1) + dv)*dt
+\end{equation}
+Ce qui nous permet de réaliser la fonction d'intégration implicite de la manière suivante :
+\begin{equation}
+  Fnl(dv) = m * dv/dt - m*G - Fk(position(t-1) + (vitesse(t-1) + dv)*dt)
+\end{equation}
+\begin{lstlisting}[caption=Fonction permettant de réaliser l'intégration implicite]
+function [value] = Fnl(dV)
+    
+
+    numNoeuds = size(noeuds,2);  
+    F_t = zeros(2*numNoeuds,1);
+    G = size(2*numNoeuds,1);
+    for i=1:numNoeuds
+        G(2*i) = -g;
+    end
+    for i=1:5
+        dV(2*i) = 0;
+        dV(2*i-1) = 0;
+    end
+    
+    // reecrire les equations de newton en implicite
+    F_t = m * dV/dt - m*G - Fk(_MYDATA_.X_t + (_MYDATA_.V_t + dV) * dt);
+    
+    for i=1:5
+        F_t(2*i) = 0;
+        F_t(2*i-1) = 0;
+    end
+    
+    value = F_t;
+    
+endfunction
+
+function [value] = Fk(position)
+    F_t = zeros(2*numNoeuds,1);
+    L=[];
+    for s=1:numSegments,
+        i1= segments(1,s);
+        i2= segments(2,s);
+        // longueur actuelle
+        L(s) = norm( position([2*i1-1 2*i1]) - position([2*i2-1 2*i2]) )
+        // normale actuelle
+        n = (position([2*i1-1 2*i1]) - position([2*i2-1 2*i2]))*(1.0/L(s));
+   
+        // force du ressort
+        F = n*(k*(L(s)-L0(s)));
+        
+        // ajout de la force dans le vecteur
+        F_t([2*i1-1 2*i1]) = F_t([2*i1-1 2*i1])  - F;
+        F_t([2*i2-1 2*i2]) = F_t([2*i2-1 2*i2])  + F;
+    end
+    
+    value = F_t;
+
+endfunction
+\end{lstlisting}
+
+\section{Conclusion}
+\end{document}

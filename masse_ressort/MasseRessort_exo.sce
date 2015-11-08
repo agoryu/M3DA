@@ -41,24 +41,16 @@ end
 oldVitesse = 0;
 vitesse = 0;
 
-L0 = zeros(numSegments);
+Lz = zeros(numSegments);
 for i=1:numSegments
-    L0[i] = norm(X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]));
+    s1 = segments(1, i);
+    s2 = segments(2, i);
+    L0(i) = norm(X_t([2*s1-1 2*s1])-X_t([2*s2-1 2*s2]));
 end
 
 for time=0:dt:T,
 
-    //force ressort
-    for j=1:numSegments
-        s1 = segments(j, 1);
-        s2 = segments(j, 2);
-        L[j] = norm(X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]));
-        f = k * (L[j] - L0[j]); 
-        direction = X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]);
-        direction = direction / norm(direction);
-        X_t([2*s1-1 2*s1]) = direction * f;
-        X_t([2*s2-1 2*s2]) = -direction * f;
-    end
+    L = zeros(numSegments);
     
     // mouvement de translation uniforme
     for i=1:numNoeuds
@@ -72,6 +64,20 @@ for time=0:dt:T,
     end
     
     oldVitesse = vitesse;
+    
+    for j=1:numSegments
+        s1 = segments(1, j);
+        s2 = segments(2, j);
+        L(j) = norm(X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]));
+        f = k * (L(j) - L0(j)); 
+        direction = X_t([2*s1-1 2*s1]) - X_t([2*s2-1 2*s2]);
+        if(direction == 0) then
+            continue
+        end
+        direction = direction / norm(direction);
+        X_t([2*s1-1 2*s1]) = X_t([2*s1-1 2*s1]) + direction * f;
+        X_t([2*s2-1 2*s2]) = X_t([2*s2-1 2*s2]) - direction * f;
+    end
         
     // déplacement du maillage
     noeuds_deplaces = noeuds;
