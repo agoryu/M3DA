@@ -11,7 +11,9 @@ function [F,K] = computeSpring(P1,P2, LO, k)
 	F = [n* forceIntensity; -n* forceIntensity];
 
 	// tangent stiffness 
-    K=zeros(4,4)
+    tgt = forceIntensity / L;
+    kr = n*n'*(k-tgt) + [1 0;0 1] * tgt;
+    K = [-kr kr; kr -kr]
 
 endfunction
 

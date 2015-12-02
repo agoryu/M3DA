@@ -13,7 +13,10 @@ function [F,K] = computeSpring(P1,P2, Linit, k)
 	F = [n* forceIntensity; -n* forceIntensity];
 
 	// tangent stiffness 
-    K=zeros(4,4)
+    //K=zeros(4,4)
+    tgt = forceIntensity / L;
+    kr = n*n'*(k-tgt) + [1 0;0 1] * tgt;
+    K = [-kr kr; kr -kr]
 endfunction
 
 
@@ -43,7 +46,7 @@ numSegments = size(segments,2);
 
 
 // parametres physiques
-k=0;
+k=1000;
 m=1;
 g=9.81;
 
