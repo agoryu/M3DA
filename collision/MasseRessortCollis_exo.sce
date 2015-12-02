@@ -55,7 +55,7 @@ numSegments = size(segments,2);
 
 
 // parametres physiques
-k=1000;
+k=25;
 m=1;
 g=9.81;
 
