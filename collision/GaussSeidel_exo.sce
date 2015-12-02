@@ -6,7 +6,15 @@ function [lambda, delta] = GaussSeidel(W,dfree, maxIteration)
     delta = zeros(num,1);
     // ecrire l'algorithme
     
-    
+    for i=1 :maxIteration
+        for c=1:num
+            lambda(c)=0;
+            d=W(c,:) * lambda + dfree(c)
+            if (d<0)
+                lambda(c) = -d/W(c,c);
+            end
+        end
+    end
     
 endfunction
 
