@@ -48,22 +48,27 @@
 \begin{document}
 
 \maketitle
-\tableofcontents
+%\tableofcontents
 
 \section{Introduction}
-Lors de ces TP, nous avons travaillé sur l'application de différentes forces 
-sur un objet représenté sous forme d'un maillage. L'application des forces 
-se fait alors sur chaque point du maillage de la forme.
+Lors de ces TPs, nous étudions l'application de forces sur le maillage d'une
+forme. L'application des forces se fait alors sur chaque point du maillage de la forme.
+Le but est de simuler un comportement cohérent d'un objet en mouvement. Pour cela, nous 
+commençons par simuler la gravité sur les points d'un maillage et nous ajoutons
+ensuite des ressorts sur ces points afin d'obtenir un objet déformable. Ensuite, nous 
+gérons les contacts avec l'objet ainsi que la réponse à la collision.  
 
-\section{Calcule de la masse}
-Dans un premier temps, nous allons appliquer la gravité sur chacun des points.
-Pour cela, j'ai créé un vecteur accélération de la forme [0;-g], g étant la constante
-de gravité. J'ai mis cette constante en négatif pour la force aille vers le bas
-du graphique pour simuler la graviter terrestre. Ensuite, j'ai calculé la vitesse comme ce-ci :
+\section{Modèle masse-ressort}
+\subsection{Calcule de la masse}
+Dans un premier temps, nous appliquons la gravité sur chacun des points.
+Pour cela, nous créons un vecteur accélération de la forme [0;-g], g étant la constante
+de gravité. Nous mettons cette constante en négatif pour la force aille vers le bas
+du graphique pour simuler la graviter terrestre. Ensuite, nous calculons la vitesse comme ce-ci :
 \begin{equation}
 vitesse(t) = vitesse(t-1) + acceleration
 \end{equation}
-Et enfin, j'ai calculé la position grâce au calcul suivant : 
+L'accélération reste constante dans le temps, mais la vitesse, elle, augmente jusqu'à un certain
+point (jusqu'à ce que la force de gravitation soit égale aux frottements). Et enfin, j'ai calculé la position grâce au calcul suivant : 
 \begin{equation}
 position(t) = position(t-1) + vitesse(t)
 \end{equation}
@@ -83,12 +88,13 @@ end
 oldVitesse = vitesse;
 \end{lstlisting}
 
-\section{Calcul du ressort}
-Pour cette partie, je n'ai pas réussi à calculer la force du ressort, j'ai simplement réussi
-à calculer la longueur à l'instant t et j'ai calculé la force F comme étant :
+\subsection{Calcul du ressort}
+Pour cette partie, je n'ai pas réussi à calculer la force du ressort, j'ai calculé la longueur 
+à l'instant t (L(s)) et j'ai calculé la force F comme étant :
 \begin{equation}
 F = k*(L(s)-L0(s))
 \end{equation}
+avec L0(s) la longueur initial.
 J'ai compris qu'il fallait multiplier mon calcul par la normal du point afin que cette force
 s'applique dans la direction de cette normal. Le calcul de la normal se fait comme ce-ci:
 \begin{equation}
@@ -107,9 +113,9 @@ la manière suivante :
   position(t) &= position(t-1) + (vitesse(t-1) + dv) * dt\\
   dv &= vitesse(t) - vitesse(t-1) 
 \end{align}
-Dans un premier temps, j'ai mis dans une fonction l'ensemble des calculs réalisés
-dans les parties précédentes en mettant comme agrument la position du point calculer à l'instant t.
-Cette position correspond à :
+Les calculs pour obtenir la force du ressort entre chaque point nous est toujours utile. C'est pourquoi
+nous mettons ces calculs dans une fonction avec comme paramètre la position des points calculés à l'instant t.
+Cette position se calcul de la manière suivante :
 \begin{equation}
   position(t-1) + (vitesse(t-1) + dv)*dt
 \end{equation}
@@ -117,6 +123,7 @@ Ce qui nous permet de réaliser la fonction d'intégration implicite de la mani�
 \begin{equation}
   Fnl(dv) = m * dv/dt - m*G - Fk(position(t-1) + (vitesse(t-1) + dv)*dt)
 \end{equation}
+
 \begin{lstlisting}[caption=Fonction permettant de réaliser l'intégration implicite]
 function [value] = Fnl(dV)
     
@@ -167,6 +174,64 @@ function [value] = Fk(position)
 
 endfunction
 \end{lstlisting}
+
+\section{Gestion des contacts}
+\subsection{Méthode de pénalité}
+\subsubsection{Pénalité explicite (cas rigide)}
+Nous simulons, dans un premier temps, la chute d'un maillage rigide. Il y aura alors contact avec un plan.
+Nous calculons d'abord la masse complète de l'objet (mG), ici un disque. Nous avons à notre disposition la 
+masse volumique (mv) égale à 0,027 kg/$cm^3$ et l'épaisseur du disque égale à 0.5 cm.
+\begin{equation}
+  mG = mass\_vol * (\Pi*5*5*epaisseur)
+\end{equation}
+Il faut alors appliquer cette masse à l’accélération de l'objet afin que celui-ci soit mis en mouvement.
+\begin{equation}
+  aG = \frac{[0;-981]*mG + FC}{mG}
+\end{equation}
+FC est la force de contact que nous calculerons par la suite.
+Etant donné que le plan avec lequel l'objet va rentrer en collision est en y=-2, il suffit de vérifier
+que l'un des points est en dessous de ce plan, donc de -2, pour détecter la collision. Pour répondre à
+cette collision et permettre à l'objet d'être repoussé par ce plan, il faut appliquer une force de pénalité
+sur l'axe des y. Cette force de pénalité va alors faire rebondir l'objet.
+\begin{equation}
+  FC(2) = FC(2) - k * (2 + noeuds_deplaces(2,i))
+\end{equation}
+Nous pouvons ensuite ajouter une composante d'amortissement à cette force, ce qui va permettre d'atténuer
+le rebondissement de l'objet. Plutôt que de faire un grand saut comme c'était le cas précédemment, il fera 
+une succession de petit saut de plus en plus petit jusqu'à ce qu'il soit stable sur le plan.
+\begin{equation}
+  FC(2) = FC(2) - k * (2 + noeuds_deplaces(2,i)) - b * vG(2)
+\end{equation}
+\begin{lstlisting}[caption=Calcul de la pénalité explicite]
+  mG = mass_vol * (%pi*5*5*epaisseur);
+  for time=0:dt:T,
+  
+    // calcul de la dynamique d'un corps rigide  (integration explicite)
+    aG = ([0;-981]*mG + FC) /mG;   
+    vG = vG + aG*dt
+    pG = pG + vG*dt;
+    FC=[0;0];
+    
+    // calculer le deplacement du maillage en fonction du deplacement du centre de gravite
+    noeuds_deplaces = noeuds;
+    for i=1:numNoeuds,
+      // deplacement selon x
+      noeuds_deplaces(1,i) = pG(1) + noeuds(1,i);
+      // deplacement selon y
+      noeuds_deplaces(2,i) = pG(2) + noeuds(2,i);  
+      
+      //detection de collision
+      if noeuds_deplaces(2,i) < -2,
+          FC(2) = FC(2) - k * (2 + noeuds_deplaces(2,i)) - b * vG(2);
+      end
+    end 
+  end
+\end{lstlisting}
+\subsubsection{Pénalité implicite (cas déformable)}
+%TODO il manque la pénalité implicite
+
+\subsection{Multiplicateur de Lagrange}
+\subsubsection{Matrice tangente d'un système masse-ressort}
 
 \section{Conclusion}
 \end{document}
