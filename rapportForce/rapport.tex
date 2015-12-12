@@ -17,7 +17,7 @@
 \definecolor{darkred}{RGB}{160,0,0}
 
 \lstset{
-    language=C++,
+    language=Scilab,
     captionpos=b,
     extendedchars=true,
     frame=lines,
@@ -232,6 +232,48 @@ une succession de petit saut de plus en plus petit jusqu'à ce qu'il soit stable
 
 \subsection{Multiplicateur de Lagrange}
 \subsubsection{Matrice tangente d'un système masse-ressort}
+\begin{lstlisting}[caption=Calcul de matrice tangente du système]
+  function [F,K] = computeSpring(P1,P2, LO, k)
+	// longueur actuelle
+	L = norm( P2 - P1 )
+	// normale actuelle
+	n = (P2 - P1)*(1.0/L);
+	// force du ressort
+	forceIntensity = k*(L-L0);
 
+	// force sur les noeuds
+	F = [n* forceIntensity; -n* forceIntensity];
+
+	// tangent stiffness 
+    tgt = forceIntensity / L;
+    kr = n*n'*(k-tgt) + [1 0;0 1] * tgt;
+    K = [-kr kr; kr -kr]
+
+endfunction
+\end{lstlisting}
+\subsubsection{Solveur de LCP}
+\begin{lstlisting}[caption=Calcul de l'intensité des forces de contact]
+  function [lambda, delta] = GaussSeidel(W,dfree, maxIteration)
+    
+    num=size(W,1);
+    lambda=zeros(num,1);
+    delta = zeros(num,1);
+    // ecrire l'algorithme
+    
+    for i=1 :maxIteration
+        for c=1:num
+            lambda(c)=0;
+            d=W(c,:) * lambda + dfree(c)
+            if (d<0)
+                lambda(c) = -d/W(c,c);
+            end
+        end
+    end
+    
+endfunction
+\end{lstlisting}
 \section{Conclusion}
+Nous avons vu lors de ces TPs, comment appliquer des forces sur un objet rigide, puis comment
+étendre ces forces à l'ensemble d'un maillage afin d'obtenir un objet déformable. L'application
+de ressort entre chaque point du maillage de l'objet permet d'avoir un bon rendu de corps déformable.
 \end{document}
