@@ -228,7 +228,18 @@ une succession de petit saut de plus en plus petit jusqu'à ce qu'il soit stable
   end
 \end{lstlisting}
 \subsubsection{Pénalité implicite (cas déformable)}
-%TODO il manque la pénalité implicite
+Dans le cas d'un objet déformable, nous calculons la distance de chaque point avec le plan, nous 
+vérifions si cette distance est négatif. Si cette distance est négatif, on applique une force inverse
+sur chaque point du maillage.
+\begin{lstlisting}
+for i=1:numNoeuds
+  distance = X_t(2*i) - (-1);
+  if(distance <= 0),
+      F_t(2*i) = F_t(2*i) + -k * abs(distance);            
+  end 
+end
+\end{lstlisting}
+
 
 \subsection{Multiplicateur de Lagrange}
 \subsubsection{Matrice tangente d'un système masse-ressort}
