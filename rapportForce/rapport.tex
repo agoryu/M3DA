@@ -43,7 +43,7 @@
 
 
 \title{Rapport TP objet déformable}
-\author{Elliot Vanegue}
+\author{Elliot Vanegue et Gaëtan Deflandre}
 
 \begin{document}
 
@@ -59,21 +59,21 @@ ensuite des ressorts sur ces points afin d'obtenir un objet déformable. Ensuite
 gérons les contacts avec l'objet ainsi que la réponse à la collision.  
 
 \section{Modèle masse-ressort}
-\subsection{Calcule de la masse}
+\subsection{Calcul de la masse}
 Dans un premier temps, nous appliquons la gravité sur chacun des points.
 Pour cela, nous créons un vecteur accélération de la forme [0;-g], g étant la constante
-de gravité. Nous mettons cette constante en négatif pour la force aille vers le bas
-du graphique pour simuler la graviter terrestre. Ensuite, nous calculons la vitesse comme ce-ci :
+de gravité. Nous mettons cette constante en négatif pour que la force aille vers le bas
+du graphique pour simuler la gravité terrestre. Ensuite, nous calculons la vitesse comme ceci :
 \begin{equation}
 vitesse(t) = vitesse(t-1) + acceleration
 \end{equation}
 L'accélération reste constante dans le temps, mais la vitesse, elle, augmente jusqu'à un certain
-point (jusqu'à ce que la force de gravitation soit égale aux frottements). Et enfin, j'ai calculé la position grâce au calcul suivant : 
+point (jusqu'à ce que la force de gravitation soit égale aux frottements). Et enfin, nous calculons la position grâce au calcul suivant : 
 \begin{equation}
 position(t) = position(t-1) + vitesse(t)
 \end{equation}
 
-Voici le code que j'ai réalisé pour ce calcul.
+Voici le code que nous réalisons pour ce calcul.
 \begin{lstlisting}[caption=Code du Calcul de la gravité]
 for i=1:numNoeuds
   //calcule chute libre
@@ -89,20 +89,20 @@ oldVitesse = vitesse;
 \end{lstlisting}
 
 \subsection{Calcul du ressort}
-Pour cette partie, je n'ai pas réussi à calculer la force du ressort, j'ai calculé la longueur 
-à l'instant t (L(s)) et j'ai calculé la force F comme étant :
+Pour cette partie, nous n'avons pas réussi à calculer la force du ressort, nous avons calculé la longueur 
+à l'instant t (L(s)) et la force F comme étant :
 \begin{equation}
 F = k*(L(s)-L0(s))
 \end{equation}
-avec L0(s) la longueur initial.
-J'ai compris qu'il fallait multiplier mon calcul par la normal du point afin que cette force
-s'applique dans la direction de cette normal. Le calcul de la normal se fait comme ce-ci:
+avec L0(s) la longueur initiale.
+Nous avons compris qu'il fallait multiplier notre calcul par la normale du point afin que cette force
+s'applique dans la direction de cette normale. Le calcul de la normale se fait comme ceci:
 \begin{equation}
 n = (p1 - p2) * (\frac{1}{L(s)})
 \end{equation}
-On peut remarquer que lorsque nous augmentons trop la valeur dt les points parte n'importe où
+On peut remarquer que lorsque nous augmentons trop la valeur dt les points partent n'importe où
 et l'objet ne ressemble plus du tout à un rectangle. En revanche, lorsque nous diminuons dt,
-les mouvements des points du maillage sont moins important.
+les mouvements des points du maillage sont moins importants.
 
 \section{Intégration implicite}
 L'intégration implicite permet d'obtenir une simulation plus stable en limitant l'erreur d'arrondi
@@ -115,7 +115,7 @@ la manière suivante :
 \end{align}
 Les calculs pour obtenir la force du ressort entre chaque point nous est toujours utile. C'est pourquoi
 nous mettons ces calculs dans une fonction avec comme paramètre la position des points calculés à l'instant t.
-Cette position se calcul de la manière suivante :
+Cette position se calcule de la manière suivante :
 \begin{equation}
   position(t-1) + (vitesse(t-1) + dv)*dt
 \end{equation}
@@ -198,7 +198,7 @@ sur l'axe des y. Cette force de pénalité va alors faire rebondir l'objet.
 \end{equation}
 Nous pouvons ensuite ajouter une composante d'amortissement à cette force, ce qui va permettre d'atténuer
 le rebondissement de l'objet. Plutôt que de faire un grand saut comme c'était le cas précédemment, il fera 
-une succession de petit saut de plus en plus petit jusqu'à ce qu'il soit stable sur le plan.
+une succession de petits sauts de plus en plus petits jusqu'à ce qu'il soit stable sur le plan.
 \begin{equation}
   FC(2) = FC(2) - k * (2 + noeuds_deplaces(2,i)) - b * vG(2)
 \end{equation}
@@ -229,7 +229,7 @@ une succession de petit saut de plus en plus petit jusqu'à ce qu'il soit stable
 \end{lstlisting}
 \subsubsection{Pénalité implicite (cas déformable)}
 Dans le cas d'un objet déformable, nous calculons la distance de chaque point avec le plan, nous 
-vérifions si cette distance est négatif. Si cette distance est négatif, on applique une force inverse
+vérifions si cette distance est négative. Si cette distance est négative, on applique une force inverse
 sur chaque point du maillage.
 \begin{lstlisting}
 for i=1:numNoeuds
@@ -241,48 +241,48 @@ end
 \end{lstlisting}
 
 
-\subsection{Multiplicateur de Lagrange}
-\subsubsection{Matrice tangente d'un système masse-ressort}
-\begin{lstlisting}[caption=Calcul de matrice tangente du système]
-  function [F,K] = computeSpring(P1,P2, LO, k)
-	// longueur actuelle
-	L = norm( P2 - P1 )
-	// normale actuelle
-	n = (P2 - P1)*(1.0/L);
-	// force du ressort
-	forceIntensity = k*(L-L0);
-
-	// force sur les noeuds
-	F = [n* forceIntensity; -n* forceIntensity];
-
-	// tangent stiffness 
-    tgt = forceIntensity / L;
-    kr = n*n'*(k-tgt) + [1 0;0 1] * tgt;
-    K = [-kr kr; kr -kr]
-
-endfunction
-\end{lstlisting}
-\subsubsection{Solveur de LCP}
-\begin{lstlisting}[caption=Calcul de l'intensité des forces de contact]
-  function [lambda, delta] = GaussSeidel(W,dfree, maxIteration)
-    
-    num=size(W,1);
-    lambda=zeros(num,1);
-    delta = zeros(num,1);
-    // ecrire l'algorithme
-    
-    for i=1 :maxIteration
-        for c=1:num
-            lambda(c)=0;
-            d=W(c,:) * lambda + dfree(c)
-            if (d<0)
-                lambda(c) = -d/W(c,c);
-            end
-        end
-    end
-    
-endfunction
-\end{lstlisting}
+% \subsection{Multiplicateur de Lagrange}
+% \subsubsection{Matrice tangente d'un système masse-ressort}
+% \begin{lstlisting}[caption=Calcul de matrice tangente du système]
+%   function [F,K] = computeSpring(P1,P2, LO, k)
+% 	// longueur actuelle
+% 	L = norm( P2 - P1 )
+% 	// normale actuelle
+% 	n = (P2 - P1)*(1.0/L);
+% 	// force du ressort
+% 	forceIntensity = k*(L-L0);
+% 
+% 	// force sur les noeuds
+% 	F = [n* forceIntensity; -n* forceIntensity];
+% 
+% 	// tangent stiffness 
+%     tgt = forceIntensity / L;
+%     kr = n*n'*(k-tgt) + [1 0;0 1] * tgt;
+%     K = [-kr kr; kr -kr]
+% 
+% endfunction
+% \end{lstlisting}
+% \subsubsection{Solveur de LCP}
+% \begin{lstlisting}[caption=Calcul de l'intensité des forces de contact]
+%   function [lambda, delta] = GaussSeidel(W,dfree, maxIteration)
+%     
+%     num=size(W,1);
+%     lambda=zeros(num,1);
+%     delta = zeros(num,1);
+%     // ecrire l'algorithme
+%     
+%     for i=1 :maxIteration
+%         for c=1:num
+%             lambda(c)=0;
+%             d=W(c,:) * lambda + dfree(c)
+%             if (d<0)
+%                 lambda(c) = -d/W(c,c);
+%             end
+%         end
+%     end
+%     
+% endfunction
+% \end{lstlisting}
 \section{Conclusion}
 Nous avons vu lors de ces TPs, comment appliquer des forces sur un objet rigide, puis comment
 étendre ces forces à l'ensemble d'un maillage afin d'obtenir un objet déformable. L'application
